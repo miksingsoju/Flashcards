@@ -47,20 +47,34 @@ export default function FlashcardApp() {
   };
 
   const deleteFlashcard = (index) => {
-    setFlashcards(flashcards.filter((_, i) => i !== index));
+    const updatedFlashcards = flashcards.filter((_, i) => i !== index);
+    setFlashcards(updatedFlashcards);
   };
 
-  const startEditing = (index) => {
+  const editFlashcard = (index) => {
     setEditingIndex(index);
     setEditQuestion(flashcards[index].question);
     setEditAnswer(flashcards[index].answer);
   };
 
-  const saveEdit = (index) => {
+  const saveFlashcard = () => {
     const updatedFlashcards = [...flashcards];
-    updatedFlashcards[index] = { ...updatedFlashcards[index], question: editQuestion, answer: editAnswer };
+    updatedFlashcards[editingIndex] = { ...updatedFlashcards[editingIndex], question: editQuestion, answer: editAnswer };
     setFlashcards(updatedFlashcards);
     setEditingIndex(null);
+  };
+
+  const nextCard = () => {
+    setShowAnswer(false);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredFlashcards.length);
+  };
+
+  const toggleCard = () => {
+    if (showAnswer) {
+      nextCard();
+    } else {
+      setShowAnswer(true);
+    }
   };
 
   const filteredFlashcards = flashcards.filter(card => card.group === selectedGroup);
@@ -108,30 +122,36 @@ export default function FlashcardApp() {
         </div>
       )}
       <div className="space-y-4">
-        {filteredFlashcards.length > 0 && (
-          <div>
-            {filteredFlashcards.map((card, index) => (
-              <Card key={index} className="p-4 text-center border border-gray-300 shadow-lg">
-                <div className="bg-green-600 text-white text-lg font-bold p-3 rounded-t-lg">{card.group}</div>
-                <CardContent className="p-4">
-                  {editingIndex === index ? (
-                    <>
-                      <Textarea value={editQuestion} onChange={(e) => setEditQuestion(e.target.value)} className="mb-2" />
-                      <Textarea value={editAnswer} onChange={(e) => setEditAnswer(e.target.value)} className="mb-2" />
-                      <Button onClick={() => saveEdit(index)} className="hover:bg-yellow-600">Save</Button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-xl font-semibold mb-2">{card.question}</div>
-                      <div className="text-gray-600">{card.answer}</div>
-                      <Button variant="destructive" className="mt-2 hover:bg-red-600" onClick={() => deleteFlashcard(index)}>Delete</Button>
-                      <Button className="mt-2 ml-2 hover:bg-yellow-500" onClick={() => startEditing(index)}>Edit</Button>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        {filteredFlashcards.length > 0 && quizMode && (
+          <Card className="p-4 text-center border border-gray-300 shadow-lg cursor-pointer" onClick={toggleCard}>
+            <div className="bg-green-600 text-white text-lg font-bold p-3 rounded-t-lg">{filteredFlashcards[currentIndex].group}</div>
+            <CardContent className="p-4 text-xl font-semibold">
+              {showAnswer ? filteredFlashcards[currentIndex].answer : filteredFlashcards[currentIndex].question}
+            </CardContent>
+          </Card>
+        )}
+        {!quizMode && (
+          filteredFlashcards.map((card, index) => (
+            <Card key={index} className="p-4 text-center border border-gray-300 shadow-lg">
+              <div className="bg-green-600 text-white text-lg font-bold p-3 rounded-t-lg">{card.group}</div>
+              <CardContent className="p-4">
+                {editingIndex === index ? (
+                  <>
+                    <Textarea value={editQuestion} onChange={(e) => setEditQuestion(e.target.value)} className="mb-2" />
+                    <Textarea value={editAnswer} onChange={(e) => setEditAnswer(e.target.value)} className="mb-2" />
+                    <Button onClick={saveFlashcard} className="hover:bg-blue-600">Save</Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-xl font-semibold mb-2">{card.question}</div>
+                    <div className="text-gray-600">{card.answer}</div>
+                    <Button onClick={() => editFlashcard(index)} className="hover:bg-yellow-600 mr-2">Edit</Button>
+                    <Button onClick={() => deleteFlashcard(index)} className="hover:bg-red-600">Delete</Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          ))
         )}
       </div>
     </div>
