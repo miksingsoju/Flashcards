@@ -46,24 +46,6 @@ export default function FlashcardApp() {
     }
   };
 
-  const deleteFlashcard = (index) => {
-    const updatedFlashcards = flashcards.filter((_, i) => i !== index);
-    setFlashcards(updatedFlashcards);
-  };
-
-  const editFlashcard = (index) => {
-    setEditingIndex(index);
-    setEditQuestion(flashcards[index].question);
-    setEditAnswer(flashcards[index].answer);
-  };
-
-  const saveFlashcard = () => {
-    const updatedFlashcards = [...flashcards];
-    updatedFlashcards[editingIndex] = { ...updatedFlashcards[editingIndex], question: editQuestion, answer: editAnswer };
-    setFlashcards(updatedFlashcards);
-    setEditingIndex(null);
-  };
-
   const nextCard = () => {
     setShowAnswer(false);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredFlashcards.length);
@@ -75,6 +57,33 @@ export default function FlashcardApp() {
     } else {
       setShowAnswer(true);
     }
+  };
+
+  const exportFlashcards = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(flashcards));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "flashcards.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    document.body.removeChild(downloadAnchor);
+  };
+
+  const importFlashcards = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        setFlashcards(importedData);
+        localStorage.setItem("flashcards", JSON.stringify(importedData));
+      } catch (error) {
+        console.error("Error importing flashcards:", error);
+      }
+    };
+    reader.readAsText(file);
   };
 
   const filteredFlashcards = flashcards.filter(card => card.group === selectedGroup);
@@ -135,24 +144,16 @@ export default function FlashcardApp() {
             <Card key={index} className="p-4 text-center border border-gray-300 shadow-lg">
               <div className="bg-green-600 text-white text-lg font-bold p-3 rounded-t-lg">{card.group}</div>
               <CardContent className="p-4">
-                {editingIndex === index ? (
-                  <>
-                    <Textarea value={editQuestion} onChange={(e) => setEditQuestion(e.target.value)} className="mb-2" />
-                    <Textarea value={editAnswer} onChange={(e) => setEditAnswer(e.target.value)} className="mb-2" />
-                    <Button onClick={saveFlashcard} className="hover:bg-blue-600">Save</Button>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-xl font-semibold mb-2">{card.question}</div>
-                    <div className="text-gray-600">{card.answer}</div>
-                    <Button onClick={() => editFlashcard(index)} className="hover:bg-yellow-600 mr-2">Edit</Button>
-                    <Button onClick={() => deleteFlashcard(index)} className="hover:bg-red-600">Delete</Button>
-                  </>
-                )}
+                <div className="text-xl font-semibold mb-2">{card.question}</div>
+                <div className="text-gray-600">{card.answer}</div>
               </CardContent>
             </Card>
           ))
         )}
+      </div>
+      <div className="mt-4">
+        <Button onClick={exportFlashcards} className="hover:bg-blue-600">Export Flashcards</Button>
+        <input type="file" onChange={importFlashcards} className="mt-2" />
       </div>
     </div>
   );
