@@ -16,9 +16,6 @@ export default function FlashcardApp() {
   const [quizMode, setQuizMode] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [editQuestion, setEditQuestion] = useState("");
-  const [editAnswer, setEditAnswer] = useState("");
 
   useEffect(() => {
     const savedFlashcards = JSON.parse(localStorage.getItem("flashcards"));
@@ -31,6 +28,13 @@ export default function FlashcardApp() {
     localStorage.setItem("flashcards", JSON.stringify(flashcards));
     localStorage.setItem("groups", JSON.stringify(groups));
   }, [flashcards, groups]);
+
+  useEffect(() => {
+    if (quizMode) {
+      setCurrentIndex(0);      // Always start from first card
+      setShowAnswer(false);    // Ensure question is shown first
+    }
+  }, [quizMode]);
 
   const addGroup = () => {
     if (selectedGroup && !groups.includes(selectedGroup)) {
@@ -59,38 +63,11 @@ export default function FlashcardApp() {
     }
   };
 
-  const exportFlashcards = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(flashcards));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "flashcards.json");
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    document.body.removeChild(downloadAnchor);
-  };
-
-  const importFlashcards = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const importedData = JSON.parse(e.target.result);
-        setFlashcards(importedData);
-        localStorage.setItem("flashcards", JSON.stringify(importedData));
-      } catch (error) {
-        console.error("Error importing flashcards:", error);
-      }
-    };
-    reader.readAsText(file);
-  };
-
   const filteredFlashcards = flashcards.filter(card => card.group === selectedGroup);
 
   return (
     <div className="p-6 max-w-xl mx-auto text-center">
-      <h1 className="text-2xl font-bold mb-4">Flashcard Creator</h1>
+      <h1 className="text-2xl font-bold mb-4">DOGEARS</h1>
       <div className="flex justify-center items-center gap-2 mb-4">
         <span>Quiz Mode</span>
         <Switch checked={quizMode} onCheckedChange={setQuizMode} />
@@ -105,8 +82,9 @@ export default function FlashcardApp() {
             />
             <Button onClick={addGroup} className="hover:bg-green-600">Add Group</Button>
           </div>
+          Select Group 
           <select
-            className="mb-2 p-2 border rounded"
+            className="mx-2 mb-2 p-2 border rounded"
             value={selectedGroup}
             onChange={(e) => setSelectedGroup(e.target.value)}
           >
@@ -130,6 +108,7 @@ export default function FlashcardApp() {
           <Button onClick={addFlashcard} disabled={!selectedGroup} className="hover:bg-blue-600">Add Flashcard</Button>
         </div>
       )}
+
       <div className="space-y-4">
         {filteredFlashcards.length > 0 && quizMode && (
           <Card className="p-4 text-center border border-gray-300 shadow-lg cursor-pointer" onClick={toggleCard}>
@@ -139,6 +118,7 @@ export default function FlashcardApp() {
             </CardContent>
           </Card>
         )}
+
         {!quizMode && (
           filteredFlashcards.map((card, index) => (
             <Card key={index} className="p-4 text-center border border-gray-300 shadow-lg">
@@ -151,10 +131,7 @@ export default function FlashcardApp() {
           ))
         )}
       </div>
-      <div className="mt-4">
-        <Button onClick={exportFlashcards} className="hover:bg-blue-600">Export Flashcards</Button>
-        <input type="file" onChange={importFlashcards} className="mt-2" />
-      </div>
+      
     </div>
   );
 }
