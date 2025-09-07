@@ -50,6 +50,10 @@ export default function FlashcardApp() {
     }
   };
 
+  const deleteFlashcard = (indexToDelete) => {
+  setFlashcards(flashcards.filter((_, index) => index !== indexToDelete));
+  }
+
   const nextCard = () => {
     setShowAnswer(false);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredFlashcards.length);
@@ -67,7 +71,7 @@ export default function FlashcardApp() {
 
   return (
     <div className="p-6 max-w-xl mx-auto text-center">
-      <h1 className="text-2xl font-bold mb-4">DOGEARS</h1>
+      <h1 className="text-2xl font-bold mb-4">DOGEARED</h1>
       <div className="flex justify-center items-center gap-2 mb-4">
         <span>Quiz Mode</span>
         <Switch checked={quizMode} onCheckedChange={setQuizMode} />
@@ -105,28 +109,36 @@ export default function FlashcardApp() {
             onChange={(e) => setAnswer(e.target.value)}
             className="mb-2"
           />
-          <Button onClick={addFlashcard} disabled={!selectedGroup} className="hover:bg-blue-600">Add Flashcard</Button>
+          <Button onClick={addFlashcard} disabled={!selectedGroup} className="hover:bg-white hover:text-black hover:border-black hover:border-2 ">Add Flashcard</Button>
         </div>
       )}
+
+      
 
       <div className="space-y-4">
         {filteredFlashcards.length > 0 && quizMode && (
           <Card className="p-4 text-center border border-gray-300 shadow-lg cursor-pointer" onClick={toggleCard}>
             <div className="bg-green-600 text-white text-lg font-bold p-3 rounded-t-lg">{filteredFlashcards[currentIndex].group}</div>
             <CardContent className="p-4 text-xl font-semibold">
+              
               {showAnswer ? filteredFlashcards[currentIndex].answer : filteredFlashcards[currentIndex].question}
             </CardContent>
+            
+
           </Card>
         )}
 
         {!quizMode && (
           filteredFlashcards.map((card, index) => (
             <Card key={index} className="p-4 text-center border border-gray-300 shadow-lg">
-              <div className="bg-green-600 text-white text-lg font-bold p-3 rounded-t-lg">{card.group}</div>
+              <div className="bg-black text-white text-lg font-bold p-3 rounded-t-lg">{card.group}</div>
               <CardContent className="p-4">
                 <div className="text-xl font-semibold mb-2">{card.question}</div>
                 <div className="text-gray-600">{card.answer}</div>
               </CardContent>
+              <Button onClick={() => deleteFlashcard(index)} className="w-1/15 bg-red-500 hover:bg-red-600 text-white mt-2">
+              X
+            </Button>
             </Card>
           ))
         )}
